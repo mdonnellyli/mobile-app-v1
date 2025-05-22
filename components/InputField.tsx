@@ -1,19 +1,23 @@
+// components/InputField.tsx
+
 import React, { FC } from 'react';
-import { TextInput, StyleSheet } from 'react-native';
+import { TextInput, StyleSheet, TextInputProps } from 'react-native';
 import { COLORS } from '../constants/Colors';
 
-interface Props {
-  placeholder:  string;
-  value:        string;
-  onChangeText(v: string): void;
-  keyboardType?: 'default' | 'phone-pad' | 'email-address' | 'numeric';
+interface Props extends TextInputProps {
+  placeholder: string;
+  value:       string;
+  onChangeText(text: string): void;
+  // no change to defaults here
 }
 
 const InputField: FC<Props> = ({
   placeholder,
   value,
   onChangeText,
-  keyboardType = 'default',
+  keyboardType    = 'default',
+  autoCapitalize  = 'sentences',   // ← back to React Native default
+  ...rest
 }) => (
   <TextInput
     style={styles.input}
@@ -22,6 +26,8 @@ const InputField: FC<Props> = ({
     value={value}
     onChangeText={onChangeText}
     keyboardType={keyboardType}
+    autoCapitalize={autoCapitalize}
+    {...rest}
   />
 );
 
