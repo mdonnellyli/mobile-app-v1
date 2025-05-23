@@ -1,5 +1,3 @@
-// screens/RegisterScreen.tsx
-
 import React, { FC, useState } from 'react';
 import {
   SafeAreaView,
@@ -8,7 +6,9 @@ import {
   Alert,
   View,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -16,13 +16,10 @@ import { RootStackParamList } from '../navigation';
 import InputField      from '../components/InputField';
 import PrimaryButton   from '../components/PrimaryButton';
 import SecondaryButton from '../components/SecondaryButton';
-import Card            from '../components/Card';
 import { COLORS }      from '../constants/Colors';
 import { User }        from './types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
-
-// Your FastAPI base URL (adjust for dev vs prod environments)
 const API_BASE_URL = 'http://localhost:8000';
 
 const RegisterScreen: FC<Props> = ({ navigation }) => {
@@ -32,42 +29,30 @@ const RegisterScreen: FC<Props> = ({ navigation }) => {
   const [email, setEmail]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  /** Format "(123) 456-7890" as user types */
-  const formatPhoneDisplay = (value: string): string => {
-    const digits = value.replace(/\D/g, '').slice(0, 10);
-    if (digits.length < 4) return digits;
-    if (digits.length < 7) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  const formatPhone = (v: string) => {
+    const d = v.replace(/\D/g, '').slice(0, 10);
+    if (d.length < 4) return d;
+    if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   };
 
-  /** Ensure exactly 10 digits */
-  const validatePhone = (input: string): boolean =>
+  const validatePhone = (input: string) =>
     input.replace(/\D/g, '').length === 10;
-
-  /** Simple email regex */
-  const validateEmail = (input: string): boolean =>
-    /^[a-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(input);
+  const validateEmail = (input: string) =>
+    input === '' || /^[a-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(input);
 
   const handleRegister = async () => {
-    // Client-side validation
     if (!validatePhone(phone)) {
-      Alert.alert('Invalid Phone', 'Enter a valid 10-digit US phone number.');
-      return;
+      return Alert.alert('Invalid Phone', 'Enter a valid 10-digit US number.');
     }
     if (!name.trim()) {
-      Alert.alert('Name Required', 'Please enter your name.');
-      return;
+      return Alert.alert('Name Required', 'Please enter your name.');
     }
     if (!location.trim()) {
-      Alert.alert('Location Required', 'Please enter your location.');
-      return;
+      return Alert.alert('Location Required', 'Please enter your location.');
     }
-    if (email && !validateEmail(email.trim())) {
-      Alert.alert(
-        'Invalid Email',
-        'Email must start with a lowercase letter and be valid.'
-      );
-      return;
+    if (!validateEmail(email.trim())) {
+      return Alert.alert('Invalid Email', 'Must start with lowercase and be valid.');
     }
 
     setLoading(true);
@@ -85,91 +70,123 @@ const RegisterScreen: FC<Props> = ({ navigation }) => {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
       });
-
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.detail || 'Registration failed');
+        const err = await res.json();
+        throw new Error(err.detail || res.statusText);
       }
-
-      const savedUser = await res.json();
-      // Map API response to your front-end User type
+      const saved = await res.json();
       const user: User = {
-        id:          savedUser.id,
-        phoneNumber: savedUser.phone_number,
-        name:        savedUser.name,
-        location:    savedUser.location,
-        email:       savedUser.email,
+        id:          saved.id,
+        phoneNumber: saved.phone_number,
+        name:        saved.name,
+        location:    saved.location,
+        email:       saved.email,
       };
-
       await AsyncStorage.setItem('user', JSON.stringify(user));
       navigation.replace('Profile', { user });
     } catch (err: any) {
-      Alert.alert('Registration Failed', err.message || 'Please try again.');
+      Alert.alert('Registration Failed', err.message || 'Try again later.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <LinearGradient colors={['#F7FAFA', '#E5F6F7']} style={styles.gradient}>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>Create Account</Text>
+        <LinearGradient
+          colors={[COLORS.softWhite, COLORS.lightGrey]}
+          style={styles.card}
+        >
+          <InputField
+            placeholder="Phone Number"
+            value={phone}
+            onChangeText={t => setPhone(formatPhone(t))}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+          />
+          <InputField
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+          />
+          <InputField
+            placeholder="Location"
+            value={location}
+            onChangeText={setLocation}
+            autoCapitalize="words"
+          />
+          <InputField
+            placeholder="Email (optional)"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-      <Card>
-        <InputField
-          placeholder="Phone Number"
-          value={phone}
-          onChangeText={text => setPhone(formatPhoneDisplay(text))}
-          keyboardType="phone-pad"
-        />
-        <InputField
-          placeholder="Name"
-          value={name}
-          onChangeText={setName}
-        />
-        <InputField
-          placeholder="Location"
-          value={location}
-          onChangeText={setLocation}
-        />
-        <InputField
-          placeholder="Email (optional)"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"  
-        />
+          {loading
+            ? <ActivityIndicator style={styles.loader} />
+            : <PrimaryButton title="Register" onPress={handleRegister} />
+          }
+        </LinearGradient>
 
-        {loading ? (
-          <ActivityIndicator style={{ marginTop: 16 }} />
-        ) : (
-          <PrimaryButton title="Register" onPress={handleRegister} />
-        )}
-      </Card>
-
-      <View style={{ marginTop: 16 }}>
         <SecondaryButton
           title="Back to Login"
           onPress={() => navigation.replace('Login')}
+          style={styles.backBtn}
+          textStyle={styles.backText}
         />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex:            1,
-    backgroundColor: COLORS.softWhite,
-    alignItems:      'center',
-    justifyContent:  'center',
-    padding:         16,
+  gradient: {
+    flex: 1,
   },
-  title: {
-    fontSize:     24,
-    fontWeight:   'bold',
-    color:        COLORS.navy,
-    marginBottom: 24,
+  container: {
+    flex:             1,
+    alignItems:       'center',
+    paddingTop:       50,
+    paddingHorizontal: 20,
+  },
+  header: {
+    fontSize:       30,
+    fontWeight:     Platform.select({ ios: '700', android: 'bold' }),
+    color:          COLORS.navy,
+    marginBottom:   30,
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset:{ width: 0, height: 2 },
+    textShadowRadius:4,
+  },
+  card: {
+    width:           '100%',
+    borderRadius:    30,
+    padding:         25,
+    shadowColor:     '#000',
+    shadowOpacity:   0.05,
+    shadowOffset:    { width: 0, height: 10 },
+    shadowRadius:    20,
+    elevation:       6,
+    marginBottom:    20,
+  },
+  loader: {
+    marginTop: 16,
+  },
+  backBtn: {
+    backgroundColor: COLORS.coral,
+    borderRadius:    20,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+  },
+  backText: {
+    fontSize:   16,
+    fontWeight: 'bold',
+    color:      COLORS.white,
   },
 });

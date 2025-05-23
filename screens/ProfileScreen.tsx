@@ -6,7 +6,9 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -17,16 +19,13 @@ import { COLORS }      from '../constants/Colors';
 import { User }        from './types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
-
 const API_BASE_URL = 'http://localhost:8000';
 
 const ProfileScreen: FC<Props> = ({ route, navigation }) => {
-  // initial user from route params
   const initial: User = route.params.user;
-  const [user, setUser] = useState<User | null>(initial);
+  const [user, setUser]   = useState<User | null>(initial);
   const [loading, setLoading] = useState(false);
 
-  // on mount, re-fetch the latest user by ID
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -45,7 +44,7 @@ const ProfileScreen: FC<Props> = ({ route, navigation }) => {
           await AsyncStorage.setItem('user', JSON.stringify(u));
         }
       } catch {
-        // ignore network failures
+        // ignore errors
       } finally {
         setLoading(false);
       }
@@ -73,53 +72,82 @@ const ProfileScreen: FC<Props> = ({ route, navigation }) => {
 
   if (loading || !user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" />
-      </SafeAreaView>
+      <LinearGradient colors={['#F7FAFA', '#E5F6F7']} style={styles.gradient}>
+        <SafeAreaView style={styles.container}>
+          <ActivityIndicator size="large" />
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Your Profile</Text>
-      <Card>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Phone:</Text>
-          <Text style={styles.fieldValue}>{user.phoneNumber}</Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Name:</Text>
-          <Text style={styles.fieldValue}>{user.name}</Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Location:</Text>
-          <Text style={styles.fieldValue}>{user.location}</Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Email:</Text>
-          <Text style={styles.fieldValue}>{user.email ?? 'N/A'}</Text>
-        </View>
-      </Card>
-      <SecondaryButton title="Log Out" onPress={handleLogout} />
-    </SafeAreaView>
+    <LinearGradient colors={['#E5F6F7', '#F7FAFA']} style={styles.gradient}>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>Your Profile</Text>
+        <LinearGradient
+          colors={[COLORS.softWhite, COLORS.lightGrey]}
+          style={styles.card}
+        >
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Phone:</Text>
+            <Text style={styles.fieldValue}>{user.phoneNumber}</Text>
+          </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Name:</Text>
+            <Text style={styles.fieldValue}>{user.name}</Text>
+          </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Location:</Text>
+            <Text style={styles.fieldValue}>{user.location}</Text>
+          </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Email:</Text>
+            <Text style={styles.fieldValue}>{user.email ?? 'N/A'}</Text>
+          </View>
+        </LinearGradient>
+
+        <SecondaryButton
+          title="Log Out"
+          onPress={handleLogout}
+          style={styles.logoutBtn}
+          textStyle={styles.logoutText}
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex:            1,
-    backgroundColor: COLORS.softWhite,
-    alignItems:      'center',
-    justifyContent:  'center',
-    padding:         16,
+  gradient: {
+    flex: 1,
   },
-  title: {
-    fontSize:     24,
-    fontWeight:   'bold',
-    color:        COLORS.navy,
-    marginBottom: 24,
+  container: {
+    flex:             1,
+    alignItems:       'center',
+    paddingTop:       50,
+    paddingHorizontal: 20,
+  },
+  header: {
+    fontSize:       30,
+    fontWeight:     Platform.select({ ios: '700', android: 'bold' }),
+    color:          COLORS.navy,
+    marginBottom:   30,
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset:{ width: 0, height: 2 },
+    textShadowRadius:4,
+  },
+  card: {
+    width:           '100%',
+    borderRadius:    30,
+    padding:         25,
+    shadowColor:     '#000',
+    shadowOpacity:   0.05,
+    shadowOffset:    { width: 0, height: 10 },
+    shadowRadius:    20,
+    elevation:       6,
+    marginBottom:    20,
   },
   fieldRow: {
     flexDirection:  'row',
@@ -132,5 +160,16 @@ const styles = StyleSheet.create({
   },
   fieldValue: {
     color: COLORS.navy,
+  },
+  logoutBtn: {
+    backgroundColor: COLORS.coral,
+    borderRadius:    20,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+  },
+  logoutText: {
+    fontSize:   16,
+    fontWeight: 'bold',
+    color:      COLORS.white,
   },
 });
