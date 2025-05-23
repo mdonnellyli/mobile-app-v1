@@ -27,7 +27,7 @@ const LoginScreen: FC<Props> = ({ navigation }) => {
   const [phone, setPhone]     = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check for saved user
+  // Auto-login if we've already saved a user
   useEffect(() => {
     (async () => {
       const json = await AsyncStorage.getItem('user');
@@ -39,17 +39,18 @@ const LoginScreen: FC<Props> = ({ navigation }) => {
   }, []);
 
   const formatPhone = (v: string) => {
-    const d = v.replace(/\D/g, '').slice(0,10);
-    if (d.length<4) return d;
-    if (d.length<7) return `(${d.slice(0,3)}) ${d.slice(3)}`;
-    return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+    const d = v.replace(/\D/g, '').slice(0, 10);
+    if (d.length < 4) return d;
+    if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   };
 
-  const onLogin = async () => {
+  const handleLogin = async () => {
     const digits = phone.replace(/\D/g, '');
     if (digits.length !== 10) {
-      return Alert.alert('Invalid Phone', 'Enter a valid 10-digit US number');
+      return Alert.alert('Invalid Phone', 'Enter a valid 10-digit US number.');
     }
+
     setLoading(true);
     try {
       const formatted = `+1${digits}`;
@@ -57,10 +58,12 @@ const LoginScreen: FC<Props> = ({ navigation }) => {
       if (res.status === 404) {
         return Alert.alert(
           'Not Registered',
-          'This number isn’t in our system. Please register first.'
+          'This number isn’t in our system. Please register as a customer first.'
         );
       }
-      if (!res.ok) throw new Error(`Error ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`Server error ${res.status}`);
+      }
 
       const fresh: any = await res.json();
       const user: User = {
@@ -69,22 +72,21 @@ const LoginScreen: FC<Props> = ({ navigation }) => {
         name:        fresh.name,
         location:    fresh.location,
         email:       fresh.email,
+        roles:       fresh.roles,
       };
+
       await AsyncStorage.setItem('user', JSON.stringify(user));
       navigation.replace('Profile', { user });
 
     } catch (err: any) {
-      Alert.alert('Login Failed', err.message || 'Try again later');
+      Alert.alert('Login Failed', err.message || 'Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient
-      colors={['#E5F6F7', '#F7FAFA']}
-      style={styles.gradient}
-    >
+    <LinearGradient colors={['#E5F6F7', '#F7FAFA']} style={styles.gradient}>
       <SafeAreaView style={styles.container}>
         <Text style={styles.header}>Welcome to Circuna</Text>
 
@@ -102,13 +104,14 @@ const LoginScreen: FC<Props> = ({ navigation }) => {
 
           {loading
             ? <ActivityIndicator style={styles.loader} />
-            : <PrimaryButton title="Log In" onPress={onLogin} />
+            : <PrimaryButton title="Log In" onPress={handleLogin} />
           }
         </LinearGradient>
 
+        {/** Existing registration button now points to RegisterCustomer */}
         <SecondaryButton
-          title="Register"
-          onPress={() => navigation.navigate('Register')}
+          title="Register as Customer"
+          onPress={() => navigation.navigate('RegisterCustomer')}
           style={styles.registerBtn}
           textStyle={styles.registerText}
         />
@@ -124,19 +127,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    flex:            1,
-    alignItems:      'center',
-    paddingTop:      60,
+    flex:             1,
+    alignItems:       'center',
+    justifyContent:   'center',
     paddingHorizontal: 20,
   },
   header: {
-    fontSize:     32,
-    fontWeight:   Platform.select({ ios: '700', android: 'bold' }),
-    color:        COLORS.navy,
-    marginBottom: 40,
-    textShadowColor: 'rgba(0,0,0,0.1)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    fontSize:       32,
+    fontWeight:     Platform.select({ ios: '700', android: 'bold' }),
+    color:          COLORS.navy,
+    marginBottom:   40,
   },
   card: {
     width:           '100%',
@@ -147,20 +147,20 @@ const styles = StyleSheet.create({
     shadowOffset:    { width: 0, height: 10 },
     shadowRadius:    20,
     elevation:       8,
-    marginBottom:    30,
+    marginBottom:    20,
   },
   loader: {
     marginTop: 16,
   },
   registerBtn: {
-    backgroundColor: COLORS.coral,
-    borderRadius:    20,
-    paddingHorizontal: 30,
-    paddingVertical:   12,
-    marginTop:         10,
+    backgroundColor:   COLORS.coral,
+    borderRadius:      24,
+    paddingVertical:   16,
+    paddingHorizontal: 32,
+    marginTop:         20,
   },
   registerText: {
-    fontSize:   16,
+    fontSize:   18,
     fontWeight: 'bold',
     color:      COLORS.white,
   },

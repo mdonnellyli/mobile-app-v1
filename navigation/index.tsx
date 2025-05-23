@@ -1,16 +1,19 @@
+// navigation/index.tsx
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import LoginScreen    from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import ProfileScreen  from '../screens/ProfileScreen';
-import { User }       from '../screens/types';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterCustomerScreen from '../screens/RegisterCustomerScreen';
+import RegisterBusinessScreen from '../screens/RegisterBusinessScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import { User } from '../screens/types';
 
 export type RootStackParamList = {
-  Login:    undefined;
-  Register: undefined;
-  Profile:  { user: User };
+  Login: undefined;
+  RegisterCustomer: undefined;
+  RegisterBusiness: undefined;
+  Profile: { user: User };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -18,13 +21,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Login"    component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Profile"  component={ProfileScreen} />
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="RegisterCustomer" component={RegisterCustomerScreen} />
+        <Stack.Screen name="RegisterBusiness" component={RegisterBusinessScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
