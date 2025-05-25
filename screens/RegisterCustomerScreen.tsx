@@ -3,36 +3,39 @@
 import React, { FC, useState, useEffect } from 'react';
 import {
   SafeAreaView,
-  Text,
-  StyleSheet,
-  Alert,
   ScrollView,
+  View,
+  Text,
+  Alert,
   ActivityIndicator,
-  Platform,
+  StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import InputField      from '../components/InputField';
-import PrimaryButton   from '../components/PrimaryButton';
+import InputField from '../components/InputField';
+import PrimaryButton from '../components/PrimaryButton';
 import SecondaryButton from '../components/SecondaryButton';
-import { COLORS }      from '../constants/Colors';
-import { Role, User }  from './types';
+import { Role, User } from './types';
 import { RootStackParamList } from '../navigation';
+
+import styles from '../theme/styles';
+import colors from '../theme/colors';
+import metrics from '../theme/metrics';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RegisterCustomer'>;
 const API_BASE_URL = 'http://localhost:8000';
 
 const RegisterCustomerScreen: FC<Props> = ({ navigation }) => {
-  const [roles, setRoles]               = useState<Role[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(true);
-  const [phone, setPhone]               = useState('');
-  const [name, setName]                 = useState('');
-  const [location, setLocation]         = useState('');
-  const [email, setEmail]               = useState('');
-  const [loading, setLoading]           = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState<boolean>(true);
+  const [phone, setPhone] = useState<string>('');
+  const [name, setName] = useState<string>('');
+  const [location, setLocation] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // 1) Fetch available roles on mount
+  // Fetch available roles on mount
   useEffect(() => {
     (async () => {
       try {
@@ -48,24 +51,28 @@ const RegisterCustomerScreen: FC<Props> = ({ navigation }) => {
     })();
   }, []);
 
-  // 2) Utility to format "(123) 456-7890"
-  const formatPhone = (v: string) => {
-    const d = v.replace(/\D/g, '').slice(0, 10);
-    if (d.length < 4) return d;
-    if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  // Format "(123) 456-7890" as the user types
+  const formatPhone = (input: string): string => {
+    const digits = input.replace(/\D/g, '').slice(0, 10);
+    if (digits.length === 0) return '';
+    if (digits.length < 4) return `(${digits}`;
+    if (digits.length < 7) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   };
 
-  // 3) Submit handler
+  // Update phone with formatting on each keystroke
+  const handleChange = (text: string) => {
+    setPhone(formatPhone(text));
+  };
+
+  // Submit registration
   const handleRegister = async () => {
-    // basic validation
     if (phone.replace(/\D/g, '').length !== 10) {
       return Alert.alert('Invalid Phone', 'Enter a valid 10-digit US number.');
     }
     if (!name.trim() || !location.trim()) {
       return Alert.alert('Missing Fields', 'Name and Location are required.');
     }
-    // find the “customer” role
     const customerRole = roles.find(r => r.name.toLowerCase() === 'customer');
     if (!customerRole) {
       return Alert.alert(
@@ -77,7 +84,7 @@ const RegisterCustomerScreen: FC<Props> = ({ navigation }) => {
     setLoading(true);
     try {
       const digits = phone.replace(/\D/g, '');
-      const payload: any = {
+      const payload = {
         phone_number: `+1${digits}`,
         name:         name.trim(),
         location:     location.trim(),
@@ -90,7 +97,6 @@ const RegisterCustomerScreen: FC<Props> = ({ navigation }) => {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || res.statusText);
@@ -108,7 +114,6 @@ const RegisterCustomerScreen: FC<Props> = ({ navigation }) => {
 
       await AsyncStorage.setItem('user', JSON.stringify(user));
       navigation.replace('Profile', { user });
-
     } catch (err: any) {
       Alert.alert('Registration Failed', err.message || 'Please try again.');
     } finally {
@@ -116,85 +121,88 @@ const RegisterCustomerScreen: FC<Props> = ({ navigation }) => {
     }
   };
 
-  // 4) Show loader until roles arrive
+  // Show loader until roles are fetched
   if (loadingRoles) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" />
+      <SafeAreaView style={[styles.screen, localStyles.center]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
-  // 5) Render form
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Register as Customer</Text>
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={localStyles.container}>
+        <Text style={styles.title}>Register as Customer</Text>
 
-      <InputField
-        placeholder="Phone Number"
-        value={phone}
-        onChangeText={t => setPhone(formatPhone(t))}
-        keyboardType="phone-pad"
-        autoCapitalize="none"
-      />
-      <InputField
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-        autoCapitalize="words"
-      />
-      <InputField
-        placeholder="Location"
-        value={location}
-        onChangeText={setLocation}
-        autoCapitalize="words"
-      />
-      <InputField
-        placeholder="Email (optional)"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <InputField
+          style={styles.input}
+          placeholder="Phone Number"
+          value={phone}
+          onChangeText={handleChange}
+          keyboardType="phone-pad"
+          autoCapitalize="none"
+        />
 
-      {loading ? (
-        <ActivityIndicator style={styles.loader} />
-      ) : (
-        <PrimaryButton title="Register" onPress={handleRegister} />
-      )}
+        <InputField
+          style={styles.input}
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+        />
 
-      <SecondaryButton
-        title="Back to Login"
-        onPress={() => navigation.replace('Login')}
-        style={styles.backBtn}
-      />
-    </ScrollView>
+        <InputField
+          style={styles.input}
+          placeholder="Location"
+          value={location}
+          onChangeText={setLocation}
+          autoCapitalize="words"
+        />
+
+        <InputField
+          style={styles.input}
+          placeholder="Email (optional)"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        {loading ? (
+          <ActivityIndicator style={localStyles.loader} color={colors.primary} />
+        ) : (
+          <PrimaryButton title="Register" onPress={handleRegister} />
+        )}
+
+        <View style={localStyles.backWrapper}>
+          <SecondaryButton
+            title="Back to Login"
+            onPress={() => navigation.replace('Login')}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default RegisterCustomerScreen;
 
-const styles = StyleSheet.create({
+const localStyles = StyleSheet.create({
   container: {
-    padding:       20,
-    alignItems:    'center',
-  },
-  header: {
-    fontSize:     24,
-    fontWeight:   Platform.select({ ios: '700', android: 'bold' }),
-    color:        COLORS.navy,
-    marginBottom: 20,
+    alignItems: 'center',
+    padding: metrics.gutter,
   },
   loader: {
-    marginTop: 16,
+    marginTop: metrics.gutter,
   },
-  backBtn: {
-    marginTop:    20,
-    width:        '70%',
+  backWrapper: {
+    marginTop: metrics.gutter,
+    width: '100%',
   },
   center: {
-    flex:           1,
+    flex: 1,
     justifyContent: 'center',
-    alignItems:     'center',
+    alignItems: 'center',
   },
 });

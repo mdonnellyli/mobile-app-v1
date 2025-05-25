@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
     borderRadius:    24,
     paddingVertical: 14,
     alignItems:      'center',
+    width:           '100%',
   },
   txt: {
     color:      COLORS.white,
