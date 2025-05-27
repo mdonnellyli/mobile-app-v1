@@ -38,4 +38,4 @@ yarn-error.*
 
 ios/
 .history/
-tsx-files.tar.gz
+app-server-src.tar.gz
