@@ -1,4 +1,5 @@
 // navigation/index.tsx
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterCustomerScreen from '../screens/RegisterCustomerScreen';
 import RegisterBusinessScreen from '../screens/RegisterBusinessScreen';
+import CreateProfileScreen from '../screens/CreateProfileScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { User } from '../screens/types';
 
@@ -14,6 +16,7 @@ export type RootStackParamList = {
   RegisterCustomer: undefined;
   RegisterBusiness: undefined;
   Profile: { user: User };
+  CreateProfile: { user: User };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -26,6 +29,7 @@ export default function AppNavigator() {
         <Stack.Screen name="RegisterCustomer" component={RegisterCustomerScreen} />
         <Stack.Screen name="RegisterBusiness" component={RegisterBusinessScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
