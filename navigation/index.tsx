@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterCustomerScreen from '../screens/RegisterCustomerScreen';
-import RegisterBusinessScreen from '../screens/RegisterBusinessScreen';
 import CreateProfileScreen from '../screens/CreateProfileScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { User } from '../screens/types';
@@ -26,8 +25,7 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="RegisterCustomer" component={RegisterCustomerScreen} />
-        <Stack.Screen name="RegisterBusiness" component={RegisterBusinessScreen} />
+        <Stack.Screen name="RegisterCustomer" component={RegisterCustomerScreen} />        
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
       </Stack.Navigator>
