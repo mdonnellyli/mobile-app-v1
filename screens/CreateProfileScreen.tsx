@@ -23,9 +23,17 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CreateProfile'>;
 const STORAGE_KEY = 'custom_profiles';
 
 const CreateProfileScreen: FC<Props> = ({ route, navigation }) => {
+
+  
+
+
   const { user } = route.params;
   const [title, setTitle]       = useState('');
   const [description, setDescription] = useState('');
+
+  if (!user) {
+    return <Text testID="missing-user">Missing user</Text>;
+  }
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -45,6 +53,7 @@ const CreateProfileScreen: FC<Props> = ({ route, navigation }) => {
         createdAt:   new Date().toISOString(),
       });
 
+      console.log('Saving profile...');
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(all));
       Alert.alert('Saved', 'Your profile has been created.');
       navigation.goBack();
@@ -55,31 +64,33 @@ const CreateProfileScreen: FC<Props> = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>New Custom Profile</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>New Custom Profile</Text>
 
-      <InputField
-        placeholder="Profile Title"
-        value={title}
-        onChangeText={setTitle}
-        autoCapitalize="words"
-      />
+        <InputField
+          placeholder="Profile Title"
+          value={title}
+          onChangeText={setTitle}
+          autoCapitalize="words"
+        />
 
-      <InputField
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
+        <InputField
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+          multiline 
+        />
 
-      <PrimaryButton title="Save Profile" onPress={handleSave} />
+        <PrimaryButton title="Save Profile" onPress={handleSave} />
 
-      <SecondaryButton
-        title="Cancel"
-        onPress={() => navigation.goBack()}
-        style={styles.cancelBtn}
-      />
-    </ScrollView>
+        <SecondaryButton
+          title="Cancel"
+          onPress={() => navigation.goBack()}
+          style={styles.cancelBtn}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -100,5 +111,9 @@ const styles = StyleSheet.create({
     marginTop:     16,
     backgroundColor: COLORS.coral,
     width:           '70%',
+  },
+  safeArea: {
+  flex: 1,
+  backgroundColor: 'white',
   },
 });

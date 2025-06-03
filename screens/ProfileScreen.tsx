@@ -29,6 +29,7 @@ const STORAGE_KEY = 'custom_profiles';
 interface CustomProfile {
   userId:      number;
   title:       string;
+  phoneNumber:  string;
   description: string;
   createdAt:   string;
 }
