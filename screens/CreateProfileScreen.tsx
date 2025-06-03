@@ -23,9 +23,17 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CreateProfile'>;
 const STORAGE_KEY = 'custom_profiles';
 
 const CreateProfileScreen: FC<Props> = ({ route, navigation }) => {
+
+  
+
+
   const { user } = route.params;
   const [title, setTitle]       = useState('');
   const [description, setDescription] = useState('');
+
+  if (!user) {
+    return <Text testID="missing-user">Missing user</Text>;
+  }
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -45,6 +53,7 @@ const CreateProfileScreen: FC<Props> = ({ route, navigation }) => {
         createdAt:   new Date().toISOString(),
       });
 
+      console.log('Saving profile...');
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(all));
       Alert.alert('Saved', 'Your profile has been created.');
       navigation.goBack();
