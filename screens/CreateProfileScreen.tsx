@@ -64,31 +64,33 @@ const CreateProfileScreen: FC<Props> = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>New Custom Profile</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>New Custom Profile</Text>
 
-      <InputField
-        placeholder="Profile Title"
-        value={title}
-        onChangeText={setTitle}
-        autoCapitalize="words"
-      />
+        <InputField
+          placeholder="Profile Title"
+          value={title}
+          onChangeText={setTitle}
+          autoCapitalize="words"
+        />
 
-      <InputField
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
+        <InputField
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+          multiline 
+        />
 
-      <PrimaryButton title="Save Profile" onPress={handleSave} />
+        <PrimaryButton title="Save Profile" onPress={handleSave} />
 
-      <SecondaryButton
-        title="Cancel"
-        onPress={() => navigation.goBack()}
-        style={styles.cancelBtn}
-      />
-    </ScrollView>
+        <SecondaryButton
+          title="Cancel"
+          onPress={() => navigation.goBack()}
+          style={styles.cancelBtn}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -109,5 +111,9 @@ const styles = StyleSheet.create({
     marginTop:     16,
     backgroundColor: COLORS.coral,
     width:           '70%',
+  },
+  safeArea: {
+  flex: 1,
+  backgroundColor: 'white',
   },
 });
